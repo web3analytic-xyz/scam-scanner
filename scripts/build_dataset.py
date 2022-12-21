@@ -2,6 +2,7 @@ from os.path import join
 from os import makedirs, environ
 
 import time
+import pickle
 import numpy as np
 from tqdm import tqdm
 
@@ -24,6 +25,9 @@ def main():
     # Fix the random seed
     rs = np.random.RandomState(42)
 
+    out_dir = join(DATA_DIR, 'processed')
+    makedirs(out_dir)
+
     # We expect this to exist!
     etherscan_api_key = environ['ETHERSCAN_API_KEY']
 
@@ -44,6 +48,12 @@ def main():
 
         time.sleep(0.25)
 
+        if (i+1) % 500 == 0:
+            cache = {'abi': abi, 'bytecode': bytecode, 'opcode': opcode}
+            with open(join(out_dir, 'cache.pkl'), 'wb') as fp:
+                pickle.dump(cache, fp)
+            print(f'Cached {i+1} entries.')
+
     data['abi'] = abi
     data['opcode'] = opcode
     data['bytecode'] = bytecode
@@ -52,9 +62,6 @@ def main():
     data = data.dropna()
 
     train_data, test_data = split_data(data, rs=rs)
-
-    out_dir = join(DATA_DIR, 'processed')
-    makedirs(out_dir)
 
     train_data.to_csv(join(out_dir, 'train.csv'), index=False)
     test_data.to_csv(join(out_dir, 'test.csv'), index=False)
