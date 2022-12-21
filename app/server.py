@@ -1,3 +1,4 @@
+import torch
 from typing import Dict, Any, Optional
 
 from fastapi import FastAPI, Request
@@ -5,6 +6,7 @@ from pydantic import BaseModel, Field
 
 from transformers import LongformerModel, LongformerTokenizer
 from scamscanner.src.models import ScamScanner
+from scamscanner.src.utils import bytecode_to_opcode, get_w3
 
 
 class InferenceInput(BaseModel):
@@ -15,7 +17,7 @@ class InferenceInput(BaseModel):
     )
 
 
-class InferenceResult(BaseModel):
+class InferenceOutput(BaseModel):
     pred: int = Field(
         ...,
         example=False,
@@ -25,19 +27,6 @@ class InferenceResult(BaseModel):
         ...,
         example=0.5,
         title='Predicted probability for predicted label',
-    )
-
-
-class InferenceResponse(BaseModel):
-    error: str = Field(
-        ...,
-        example=False,
-        title='Error?',
-    )
-    results: Dict[str, Any] = Field(
-        ...,
-        example={}, 
-        title='Predicted label and probability results',
     )
 
 
@@ -84,11 +73,39 @@ async def startup_event():
 
 @app.post(
     '/api/predict',
-    response_model = InferenceResponse,
+    response_model = InferenceOutput,
     responses = {
         422: {'model': ErrorResponse},
         500: {'model': ErrorResponse}
     }
 )
 def predict(request: Request, body: InferenceInput):
-    pass
+    w3 = get_w3()
+
+    # Get the OPCODE for the contract
+    bytecode = w3.eth.get_code(w3.toChecksumAddress(request.address))
+    if bytecode.hex() == '0x':
+        # Not a contract!
+        return {'pred': -1, 'prob': -1}
+
+    opcode = bytecode_to_opcode(bytecode=bytecode)
+
+    # Encode the OP CODE
+    encoded = app.package['tokenizer'](opcode)
+
+    # Create a batch of 1
+    input_ids = encoded['input_ids'].unsqueeze(0)
+    attention_mask = encoded['attention_mask'].unsqueeze(0)
+
+    # Do inference
+    outputs = app.package['longformer'](input_ids, attention_mask=attention_mask)
+    sequence_output = outputs.last_hidden_state
+    pad_mask = torch.ones(1, sequence_output.size(1)).long()
+
+    batch = {'emb': sequence_output, 'emb_mask': pad_mask}
+    logit = app.package['scamscanner'].forward(batch)
+    pred_prob = torch.sigmoid(logit).item()  # number between 0 and 1
+    pred = bool(round(pred_prob))
+
+    # Not a contract!
+    return {'pred': pred, 'prob': pred_prob}

@@ -1,4 +1,5 @@
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 
 import pytorch_lightning as pl
@@ -31,11 +32,13 @@ class ScamScanner(pl.LightningModule):
             dropout_prob=config.model.dropout_prob,
         )
         self.pooler = ConformerPooler(self.config.model.hidden_dim)
+        self.classifier = nn.Linear(self.config.model.hidden_dim, 1)
 
     def forward(self, batch):
         out, _ = self.conformer(batch['emb'], pad_mask=batch['emb_mask'])
         out = self.pooler(out)
-        return out
+        logit = self.classifier(out)
+        return logit
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(

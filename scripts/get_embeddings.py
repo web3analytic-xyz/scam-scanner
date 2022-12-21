@@ -73,7 +73,6 @@ def main(args):
     embed_dataset(train_data, model, tokenizer, device, train_file)
 
     # Free some memory
-    del train_emb
     del train_data
 
     test_file = join(DATA_DIR, 'processed/test.h5')
