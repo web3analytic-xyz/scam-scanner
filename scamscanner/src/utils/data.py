@@ -170,7 +170,11 @@ def bytecode_to_opcode(bytecode):
     Opcode (str): Opcode string.
     """
     opcodes = EvmBytecode(bytecode).disassemble()
-    output = [opcode.name for opcode in opcodes]
+    output = []
+    for opcode in opcodes:
+        output.append(opcode.name)
+        if len(opcode.operand) > 0:
+            output.append(opcode.operand)
     return ' '.join(output)
 
 
