@@ -3,9 +3,13 @@ from os.path import join
 import json
 import requests
 import jsonlines
+
+import numpy as np
 import pandas as pd
 
+from web3 import Web3, HTTPProvider
 from evmdasm import EvmBytecode
+from sklearn.model_selection import train_test_split
 
 from ..paths import DATA_DIR
 
@@ -39,6 +43,12 @@ def load_data():
     data = data.reset_index(drop=True)
 
     return data
+
+
+def get_w3():
+    r"""Returns a Web3 instance."""
+    w3 = Web3(HTTPProvider('https://rpc.ankr.com/eth'))
+    return w3
 
 
 def get_contract_code(address, etherscan_api_key, w3):
@@ -105,13 +115,13 @@ def get_contract_code(address, etherscan_api_key, w3):
 
     bytecode = w3.eth.get_code(w3.toChecksumAddress(address))
 
-    if (bytecode is None) or (bytecode == '0x'):
+    if bytecode.hex() == '0x':
         return None
 
     opcode = bytecode_to_opcode(bytecode)
 
     result = {
-        'abi': abi,
+        'abi': json.dumps(abi),  # save as string
         'bytecode': bytecode,
         'opcode': opcode,
     }
@@ -153,14 +163,25 @@ def get_abi(address, etherscan_api_key):
 
 
 def bytecode_to_opcode(bytecode):
-    r"""Convert bytecode data to opcodes."""
-
+    r"""Convert bytecode data to opcodes.
+    Argument:
+    --
+    bytecode (str): Bytecode string.
+    Opcode (str): Opcode string.
+    """
     opcodes = EvmBytecode(bytecode).disassemble()
+    output = [opcode.name for opcode in opcodes]
+    return ' '.join(output)
 
-    return opcodes
 
-
-def split_data(data):
+def split_data(data, rs=None):
     r"""Split dataset into training and test portions."""
 
-    pass
+    train_data, test_data = train_test_split(
+        data,
+        test_size=0.2,
+        random_state=rs,
+        stratify=data['label'],
+    )
+
+    return train_data, test_data
