@@ -4,6 +4,8 @@ import torch.nn.functional as F
 import pytorch_lightning as pl
 from .conformer import ConformerEncoder, ConformerPooler
 
+from transformers import LongformerModel, LongformerTokenizer
+
 
 class ScamScanner(pl.LightningModule):
     r"""Pytorch Lightning system to train a classifier for scam contracts.
@@ -53,7 +55,3 @@ class ScamScanner(pl.LightningModule):
         logits = self.forward(batch)
         loss = F.binary_cross_entropy_with_logits(logits, batch['label'])
         return {'loss': loss}
-
-    def predict_step(self, batch, _):
-        logits = self.forward(batch)
-        return logits
