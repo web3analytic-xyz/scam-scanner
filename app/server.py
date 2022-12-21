@@ -8,7 +8,7 @@ from scamscanner.src.models import ScamScanner
 
 
 class InferenceInput(BaseModel):
-    contract_address: str = Field(
+    contract: str = Field(
         ...,
         example='0x5e4e65926ba27467555eb562121fac00d24e9dd2',
         title='Address of a smart contract',

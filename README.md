@@ -22,7 +22,20 @@ python scripts/eval.py <checkpoint-file> --devices 0
 ```
 We include a trained checkpoint in `./scamscanner/trained/checkpoint.pth` that can be used. 20\% of the dataset is randomly set aside as the test set, which the trained model did not get to see. 
 
-To do live inference, we setup a simple FastAPI that loads the model and any necessary dependencies. 
+To do live inference, we setup a simple FastAPI that loads the model and any necessary dependencies. To run the server, initialize the server:
+```
+uvicorn app/server:app --reload
+```
+You can then send API requests to your server e.g.
+```
+curl -X 'POST' \
+  'http://127.0.0.1:8000/api/predict' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "contract": "0x5e4e65926ba27467555eb562121fac00d24e9dd2"
+  }'
+```
 
 ## About
 
