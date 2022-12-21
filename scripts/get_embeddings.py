@@ -55,6 +55,10 @@ def main(args):
     train_data = pd.read_csv(join(DATA_DIR, 'processed/train.csv'))
     test_data = pd.read_csv(join(DATA_DIR, 'processed/test.csv'))
 
+    # Reset the index
+    train_data = train_data.reset_index(drop=True)
+    test_data = test_data.reset_index(drop=True)
+
     device = torch.device(f'cuda:{args.device}')
 
     # Load a tokenizer & model
