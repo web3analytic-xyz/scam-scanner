@@ -51,4 +51,3 @@ def from_yaml(path):
         config = yaml.load(fp, Loader=yaml.Loader)
 
     return config
-
