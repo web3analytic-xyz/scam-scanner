@@ -1,6 +1,6 @@
 # ScamScanner
 
-Uses embedding models on OPCODES to classify if a smart contract is a phishing or malicious scam.
+Trains a classifier on contract OPCODES to classify if a smart contract is a phishing or malicious scam.
 
 ## Data
 
@@ -39,4 +39,6 @@ curl -X 'POST' \
 
 ## About
 
-ScamScanner embeds contract OPCODES using a pretrained [LongFormer](https://arxiv.org/abs/2004.05150) from [Huggingface](https://huggingface.co/docs/transformers/model_doc/longformer). The ScamScanner model consists of stacked [Conformer](https://arxiv.org/abs/2105.03889) encoder layers followed by a [pooling layer](https://github.com/huggingface/transformers/blob/31d452c68b34c2567b62924ee0df40a83cbc52d5/src/transformers/models/longformer/modeling_longformer.py#L1372), and a final linear map to predict 0 (not a scam) or 1 (scam). Limited model and hypeparameter search was conducted. Further experiments should leverage better performance still. 
+ScamScanner embeds contract OPCODES using a pretrained [LongFormer](https://arxiv.org/abs/2004.05150) from [Huggingface](https://huggingface.co/docs/transformers/model_doc/longformer). The ScamScanner model consists of stacked [Conformer](https://arxiv.org/abs/2105.03889) encoder layers followed by a [pooling layer](https://github.com/huggingface/transformers/blob/31d452c68b34c2567b62924ee0df40a83cbc52d5/src/transformers/models/longformer/modeling_longformer.py#L1372), and a final linear map to predict 0 (not a scam) or 1 (scam). 
+
+Limited model and hypeparameter search was conducted. Further experiments should leverage better performance still. We emphasize that this code is a proof-of-concept, and should not be used at scale. Increasing the size of the labeled dataset would likely yield a more powerful classifier.
