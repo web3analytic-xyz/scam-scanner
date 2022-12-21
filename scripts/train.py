@@ -40,11 +40,12 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('config_path', type=str, help='Path to YAML config file')
-    parser.add_argument('--devices', 
-                        type=str,
-                        default='0', 
-                        help='GPU device (default: 0). If specifying multiple, use commas',
-                        )
+    parser.add_argument(
+        '--devices', 
+        type=str,
+        default='0', 
+        help='GPU device (default: 0). If specifying multiple, use commas',
+    )
     args = parser.parse_args()
 
     main(args)
