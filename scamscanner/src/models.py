@@ -6,8 +6,11 @@ from .layers import Perceptron
 from .utils import collect_metrics
 
 
-class ScamScanner_BoW(pl.LightningModule):
+class ScamScanner(pl.LightningModule):
     r"""Pytorch Lightning system to train a classifier for scam contracts.
+    Notes:
+    --
+    MLP on top of TF-IDF features on contract OPCODES.
     Arguments:
     -- 
     config: dotmap.DotMap
