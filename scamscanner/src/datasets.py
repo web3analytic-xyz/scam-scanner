@@ -15,7 +15,7 @@ def build_loaders_bow(batch_size, num_workers=0):
     r"""Create data loaders on Bag of Words datasets."""
 
     train_dset = BagOfWordsDataset(split='train')
-    test_dset = BagOfWordsDataset(split='test')
+    test_dset = BagOfWordsDataset(split='test', featurizer=train_dset.featurizer)
 
     train_loader = DataLoader(
         train_dset,
@@ -91,6 +91,8 @@ class BagOfWordsDataset(Dataset):
 
         data = pd.read_csv(join(DATA_DIR, f'processed/{split}.csv'))
         data = data.reset_index(drop=True)
+        
+        breakpoint()
 
         if featurizer is None:
             featurizer = TfidfVectorizer()
@@ -100,6 +102,7 @@ class BagOfWordsDataset(Dataset):
 
         self.data = data
         self.feats = feats.toarray()
+        self.featurizer = featurizer
 
     def __getitem__(self, index):
         row = self.data.iloc[index]
@@ -108,6 +111,9 @@ class BagOfWordsDataset(Dataset):
             'label': int(row['label'])
         }
         return result
+
+    def __len__(self):
+        return len(self.data)
 
 
 class EmbeddedDataset(Dataset):

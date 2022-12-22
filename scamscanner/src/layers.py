@@ -5,17 +5,17 @@ import torch.nn.functional as F
 
 class Perceptron(nn.Module):
 
-    def __init__(self, input_dim, hidden_dim, dropout_prob=0.5):
+    def __init__(self, input_dim, dropout_prob=0.5):
         super().__init__()
 
-        self.fc1 = Linear_Norm(input_dim, hidden_dim, activation='relu')
+        self.fc1 = Linear_Norm(input_dim, input_dim, activation='relu')
         self.dropout = nn.Dropout(p=dropout_prob)
-        self.fc2 = Linear_Norm(hidden_dim, 1)
+        self.fc2 = Linear_Norm(input_dim, input_dim, activation='relu')
+        self.fc3 = Linear_Norm(input_dim, 1)
 
     def forward(self, x):
-        x = self.fc1(x)
-        x = self.dropout(x)
-        x = self.fc2(x)
+        h = self.fc2(self.dropout(self.fc1(x)))
+        x = self.fc3(x + h)
         return x
 
 
@@ -57,7 +57,7 @@ def apply_activation(x, activation):
     elif activation == 'sigmoid':
         return torch.sigmoid(x)
     elif activation == 'relu':
-        return F.ReLU(x)
+        return F.relu(x)
     elif activation == 'softplus':
         return F.softplus(x)
     elif activation == 'softmax':

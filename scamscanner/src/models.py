@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 import pytorch_lightning as pl
-from .conformer import ConformerEncoder, ConformerPooler
 from .layers import Perceptron
 
 from transformers import LongformerModel, LongformerTokenizer
@@ -19,15 +18,12 @@ class ScamScanner_BoW(pl.LightningModule):
     def __init__(self, config):
         super().__init__()
         self.save_hyperparameters()
-
-        self.create_model(config)
+        
+        self.model = Perceptron(config.model.input_dim)
         self.config = config
 
-    def create_model(self, config):
-        self.model = Perceptron(config.model.input_dim, config.model.hidden_dim)
-
     def forward(self, batch):
-        logit = self.classifier(batch['feat'])
+        logit = self.model(batch['feat'])
         return logit
 
     def configure_optimizers(self):
@@ -41,10 +37,10 @@ class ScamScanner_BoW(pl.LightningModule):
 
     def training_step(self, batch, _):
         logits = self.forward(batch)
-        loss = F.binary_cross_entropy_with_logits(logits, batch['label'])
+        loss = F.binary_cross_entropy_with_logits(logits.squeeze(1), batch['label'].float())
         return {'loss': loss}
 
     def validation_step(self, batch, _):
         logits = self.forward(batch)
-        loss = F.binary_cross_entropy_with_logits(logits, batch['label'])
+        loss = F.binary_cross_entropy_with_logits(logits.squeeze(1), batch['label'].float())
         return {'loss': loss}
