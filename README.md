@@ -4,7 +4,7 @@ Trains a classifier on contract OPCODES to classify if a smart contract is a phi
 
 ## Data
 
-The raw dataset of Ethereum scam contracts are downloaded from various [forta-network](https://github.com/forta-network/labelled-datasets). A dataset of positive (non-scam) Ethereum contracts are downloaded from [tintinweb](https://github.com/tintinweb/smart-contract-sanctuary-ethereum). 
+The raw dataset of Ethereum scam contracts are downloaded from various [forta-network](https://github.com/forta-network/labelled-datasets). A dataset of positive (non-scam) Ethereum contracts are sampled from [tintinweb](https://github.com/tintinweb/smart-contract-sanctuary-ethereum). 
 
 We preprocess these datasets extensively to fetch ABIs, bytecodes, and OPCODES. We store these larger files using `git-lfs`. When cloning the repo, please run `git lfs pull`. You only need to do so if you wish to train your own models. If you only wish to do inference, you do not need to download these large files. 
 
@@ -16,21 +16,9 @@ pip install -e .
 ```
 in the root directory.
 
-## Usage
+## API
 
-To train the ScamScanner model, run the following:
-```
-python scripts/train.py ./scamscanner/configs/train.yml --devices 0
-```
-We strongly recommend using a GPU as this can be prohibitively slow without one.
-
-To evaluate a trained ScamScanner model, run the following:
-```
-python scripts/eval.py <checkpoint-file> --devices 0
-```
-We include a trained checkpoint in `./scamscanner/hub` that can be used. 20\% of the dataset is randomly set aside as the test set, which the trained model did not get to see. This command will output the loss and accuracy on the test set.
-
-To do live inference, we setup a simple FastAPI that loads the model and any necessary dependencies. To run the server, initialize the server (from the root directory):
+To do live prediction, we setup a simple FastAPI that loads the model and any necessary dependencies. To run the server, initialize the server (from the root directory):
 ```
 uvicorn app.server:app --reload
 ```
@@ -44,6 +32,23 @@ curl -X 'POST' \
     "contract": "0x5e4e65926ba27467555eb562121fac00d24e9dd2"
   }'
 ```
+The API takes as input a contract address and outputs a predicted probability that the contract is malicious. If the address provided is not a contract, it will return `-1`. 
+
+See more documentation at http://127.0.0.1:8000/docs.
+
+## Training
+
+To train the ScamScanner model, run the following:
+```
+python scripts/train.py ./scamscanner/configs/train.yml --devices 0
+```
+We strongly recommend using a GPU as this can be prohibitively slow without one.
+
+To evaluate a trained ScamScanner model, run the following:
+```
+python scripts/eval.py <checkpoint-file> --devices 0
+```
+We include a trained checkpoint in `./scamscanner/hub` that can be used. 20\% of the dataset is randomly set aside as the test set, which the trained model did not get to see. This command will output the loss and accuracy on the test set.
 
 ## Performance
 
