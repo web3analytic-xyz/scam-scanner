@@ -39,23 +39,29 @@ class ScamScanner_BoW(pl.LightningModule):
         return {'loss': loss}
 
     def validation_step(self, batch, _):
-        logits = self.forward(batch)
-        loss = F.binary_cross_entropy_with_logits(logits.squeeze(1), batch['label'].float())
-        return {'loss': loss}
+        logits = self.forward(batch).squeeze(1)
+        labels = batch['label'].float()
+        loss = F.binary_cross_entropy_with_logits(logits, labels)
+        pred = torch.round(torch.sigmoid(logits))
+        acc = torch.sum(pred == labels).item() / float(len(labels))
+        return {'loss': loss, 'acc': acc}
 
     def test_step(self, batch, _):
-        logits = self.forward(batch)
-        loss = F.binary_cross_entropy_with_logits(logits.squeeze(1), batch['label'].float())
-        return {'loss': loss}
+        logits = self.forward(batch).squeeze(1)
+        labels = batch['label'].float()
+        loss = F.binary_cross_entropy_with_logits(logits, labels)
+        pred = torch.round(torch.sigmoid(logits))
+        acc = torch.sum(pred == labels).item() / float(len(labels))
+        return {'loss': loss, 'acc': acc}
 
     def training_epoch_end(self, outputs):
-        metrics = collect_metrics(outputs, self.current_epoch, 'train')
+        metrics = collect_metrics(outputs, 'train')
         self.log_dict(metrics)
 
     def validation_epoch_end(self, outputs):
-        metrics = collect_metrics(outputs, self.current_epoch, 'dev')
+        metrics = collect_metrics(outputs, 'dev')
         self.log_dict(metrics)
 
     def test_epoch_end(self, outputs):
-        metrics = collect_metrics(outputs, self.current_epoch, 'test')
+        metrics = collect_metrics(outputs, 'test')
         self.log_dict(metrics)

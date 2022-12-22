@@ -53,12 +53,11 @@ def from_yaml(path):
     return config
 
 
-def collect_metrics(outputs, epoch, split):
+def collect_metrics(outputs, split):
     r"""At the end of an epoch, use this function to aggregate metrics.
     Arguments:
     --
     outputs: list[dict[string, any]]
-    epoch: integer
     split: string e.g. train
         train | dev | test
     """
@@ -73,5 +72,4 @@ def collect_metrics(outputs, epoch, split):
         for key in keys:
             metrics[f'{split}/{key}'] += output[key] / size
 
-    metrics['step'] = torch.as_tensor(epoch, dtype=torch.float32)
     return metrics
