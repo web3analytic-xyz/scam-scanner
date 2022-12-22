@@ -4,6 +4,7 @@ from os import makedirs, environ
 import time
 import pickle
 import numpy as np
+import pandas as pd
 from tqdm import tqdm
 
 from scamscanner.src.utils import (
@@ -60,8 +61,8 @@ def main():
 
     data.to_csv(join(out_dir, 'raw.csv'), index=False)
 
-    # Drop all the data that has missing entries
-    data = data.dropna()
+    # Drop all the data that has missing opcodes
+    data = data[~pd.isna(data['opcode'])]
 
     train_data, test_data = split_data(data, rs=rs)
 
