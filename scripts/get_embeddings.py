@@ -4,7 +4,9 @@ import torch
 import pandas as pd
 from tqdm import tqdm
 from os.path import join
+
 from scamscanner.src.paths import DATA_DIR
+from scamscanner.src.utils import bytecode_to_opcode
 
 from transformers import LongformerModel, LongformerTokenizer
 
@@ -20,7 +22,8 @@ def embed_dataset(dataset, model, tokenizer, device, out_file, batch_size=8):
 
         for i in tqdm(range(len(dataset)), desc='embedding...'):
             row = dataset.iloc[i]
-            opcode = row['opcode']
+            bytecode = eval(row['bytecode']).hex()
+            opcode = bytecode_to_opcode(bytecode)]
             encoded = tokenizer(opcode)
 
             batch_names.append(row['address'])
@@ -67,13 +70,9 @@ def main(args):
 
     # Cast to device
     model = model.to(device)
-    tokenizer = tokenizer.to(device)
 
     train_file = join(DATA_DIR, 'processed/train.h5')
     embed_dataset(train_data, model, tokenizer, device, train_file)
-
-    # Free some memory
-    del train_data
 
     test_file = join(DATA_DIR, 'processed/test.h5')
     embed_dataset(test_data, model, tokenizer, device, test_file)
