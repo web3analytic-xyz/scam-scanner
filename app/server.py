@@ -29,6 +29,11 @@ class InferenceOutput(BaseModel):
         example=0.5,
         title='Predicted probability for predicted label',
     )
+    success: bool = Field(
+        ...,
+        example=True,
+        title='Successfully performed inference',
+    )
 
 
 class ErrorResponse(BaseModel):
@@ -59,11 +64,15 @@ app: FastAPI = FastAPI(
 
 @app.on_event("startup")
 async def startup_event():
+    # Load trained scam-scanner model
     model_path = hub.get_model('pretrained-12-22')
     scamscanner = ScamScanner.load_from_checkpoint(model_path)
     scamscanner.eval()
 
-    app.package = {'scamscanner': scamscanner}
+    # Load featurizer
+    featurizer = joblib.load(hub.get_model('featurizer-12-22'))
+
+    app.package = {'scamscanner': scamscanner, 'featurizer': featurizer}
 
 
 @app.post(
@@ -78,28 +87,21 @@ def predict(request: Request, body: InferenceInput):
 
     # Get the OPCODE for the contract
     bytecode = w3.eth.get_code(w3.toChecksumAddress(request.address))
+    
     if bytecode.hex() == '0x':
         # Not a contract!
-        return {'pred': -1, 'prob': -1}
+        return {'pred': -1, 'prob': -1, 'success': False}
 
     opcode = bytecode_to_opcode(bytecode=bytecode)
 
     # Encode the OP CODE
-    encoded = app.package['tokenizer'](opcode)
-
-    # Create a batch of 1
-    input_ids = encoded['input_ids'].unsqueeze(0)
-    attention_mask = encoded['attention_mask'].unsqueeze(0)
+    feats = app.package['featurizer'].transform(opcode).toarray()
+    feats = torch.from_numpy(feats).float().unsqueeze(1)  # shape: 1 x 286
 
     # Do inference
-    outputs = app.package['longformer'](input_ids, attention_mask=attention_mask)
-    sequence_output = outputs.last_hidden_state
-    pad_mask = torch.ones(1, sequence_output.size(1)).long()
-
-    batch = {'emb': sequence_output, 'emb_mask': pad_mask}
-    logit = app.package['scamscanner'].forward(batch)
-    pred_prob = torch.sigmoid(logit).item()  # number between 0 and 1
+    logits = app.package['scamscanner'].forward(feats)
+    pred_prob = torch.sigmoid(logits).item()  # number between 0 and 1
     pred = bool(round(pred_prob))
 
-    # Not a contract!
-    return {'pred': pred, 'prob': pred_prob}
+    return {'pred': pred, 'prob': pred_prob, 'success': True}
+
