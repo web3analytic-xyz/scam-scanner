@@ -1,0 +1,15 @@
+experiment:
+  exp_dir: "/home/mikewu/experiments/bow_12_21"
+model:
+  input_dim: 286
+optimizer:
+  lr: 1.0e-4
+  weight_decay: 0
+  batch_size: 16
+  max_epochs: 100
+  clip_grad_norm: 0.5
+machine:
+  use_cuda: true
+  num_workers: 4
+  devices: [0]
+  seed: 42

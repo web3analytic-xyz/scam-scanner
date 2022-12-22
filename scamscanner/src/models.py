@@ -1,14 +1,12 @@
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 
 import pytorch_lightning as pl
-from .conformer import ConformerEncoder, ConformerPooler
+from .layers import Perceptron
+from .utils import collect_metrics
 
-from transformers import LongformerModel, LongformerTokenizer
 
-
-class ScamScanner(pl.LightningModule):
+class ScamScanner_BoW(pl.LightningModule):
     r"""Pytorch Lightning system to train a classifier for scam contracts.
     Arguments:
     -- 
@@ -18,26 +16,12 @@ class ScamScanner(pl.LightningModule):
     def __init__(self, config):
         super().__init__()
         self.save_hyperparameters()
-
-        self.create_model(config)
+        
+        self.model = Perceptron(config.model.input_dim)
         self.config = config
 
-    def create_model(self, config):
-        self.conformer = ConformerEncoder(
-            in_dim=768,
-            hidden_dim=config.model.hidden_dim,
-            kernel_size=config.model.kernel_size,
-            num_heads=config.model.num_heads,
-            num_layers=config.model.num_layers,
-            dropout_prob=config.model.dropout_prob,
-        )
-        self.pooler = ConformerPooler(self.config.model.hidden_dim)
-        self.classifier = nn.Linear(self.config.model.hidden_dim, 1)
-
     def forward(self, batch):
-        out, _ = self.conformer(batch['emb'], pad_mask=batch['emb_mask'])
-        out = self.pooler(out)
-        logit = self.classifier(out)
+        logit = self.model(batch['feat'])
         return logit
 
     def configure_optimizers(self):
@@ -51,10 +35,33 @@ class ScamScanner(pl.LightningModule):
 
     def training_step(self, batch, _):
         logits = self.forward(batch)
-        loss = F.binary_cross_entropy_with_logits(logits, batch['label'])
+        loss = F.binary_cross_entropy_with_logits(logits.squeeze(1), batch['label'].float())
         return {'loss': loss}
 
     def validation_step(self, batch, _):
-        logits = self.forward(batch)
-        loss = F.binary_cross_entropy_with_logits(logits, batch['label'])
-        return {'loss': loss}
+        logits = self.forward(batch).squeeze(1)
+        labels = batch['label'].float()
+        loss = F.binary_cross_entropy_with_logits(logits, labels)
+        pred = torch.round(torch.sigmoid(logits))
+        acc = torch.sum(pred == labels).item() / float(len(labels))
+        return {'loss': loss, 'acc': acc}
+
+    def test_step(self, batch, _):
+        logits = self.forward(batch).squeeze(1)
+        labels = batch['label'].float()
+        loss = F.binary_cross_entropy_with_logits(logits, labels)
+        pred = torch.round(torch.sigmoid(logits))
+        acc = torch.sum(pred == labels).item() / float(len(labels))
+        return {'loss': loss, 'acc': acc}
+
+    def training_epoch_end(self, outputs):
+        metrics = collect_metrics(outputs, 'train')
+        self.log_dict(metrics)
+
+    def validation_epoch_end(self, outputs):
+        metrics = collect_metrics(outputs, 'dev')
+        self.log_dict(metrics)
+
+    def test_epoch_end(self, outputs):
+        metrics = collect_metrics(outputs, 'test')
+        self.log_dict(metrics)

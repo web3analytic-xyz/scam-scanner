@@ -1,32 +1,32 @@
 import pytorch_lightning as pl
 
 from scamscanner.src.utils import seed_everything
-from scamscanner.src.datasets import build_loaders
-from scamscanner.src.models import ScamScanner
+from scamscanner.src.datasets import build_loaders_bow
+from scamscanner.src.models import ScamScanner_BoW
 
 
 def main(args):
     devices = [int(x) for x in args.devices.split(',')]
 
     # Load the module from a checkpoint
-    module = ScamScanner.load_from_checkpoint(args.checkpoint_path)
+    module = ScamScanner_BoW.load_from_checkpoint(args.checkpoint_path)
     module.eval()
 
     # Fetch the config from the module
     config = module.config
 
     # Fix the random seeds for reproducibility
-    seed_everything(config.machine.seed, use_cuda=config.machine.use_cuda)
+    rs = seed_everything(config.machine.seed, use_cuda=config.machine.use_cuda)
 
-    # Build the data loaders
-    _, dev_loader = build_loaders(config.optimizer.batch_size, config.machine.num_workers)
+    # Build the data loader
+    _, test_loader = build_loaders_bow(config.optimizer.batch_size, config.machine.num_workers, rs=rs)
 
     # Run through the test set and get the loss
     trainer = pl.Trainer(default_root_dir=config.experiment.exp_dir,
                          accelerator='gpu',
                          devices=devices,
                          )
-    trainer.validate(model=module, dataloaders=dev_loader)
+    trainer.test(model=module, dataloaders=test_loader)
 
 
 if __name__ == "__main__":

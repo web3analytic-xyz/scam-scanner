@@ -51,3 +51,25 @@ def from_yaml(path):
         config = yaml.load(fp, Loader=yaml.Loader)
 
     return config
+
+
+def collect_metrics(outputs, split):
+    r"""At the end of an epoch, use this function to aggregate metrics.
+    Arguments:
+    --
+    outputs: list[dict[string, any]]
+    split: string e.g. train
+        train | dev | test
+    """
+    size = len(outputs)
+    keys = outputs[0].keys()
+
+    metrics = {}
+    for key in keys:
+        metrics[f'{split}/{key}'] = 0
+
+    for output in outputs:
+        for key in keys:
+            metrics[f'{split}/{key}'] += output[key] / size
+
+    return metrics

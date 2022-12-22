@@ -26,7 +26,7 @@ def main():
     rs = np.random.RandomState(42)
 
     out_dir = join(DATA_DIR, 'processed')
-    makedirs(out_dir)
+    makedirs(out_dir, exist_ok=True)
 
     # We expect this to exist!
     etherscan_api_key = environ['ETHERSCAN_API_KEY']
@@ -57,6 +57,8 @@ def main():
     data['abi'] = abi
     data['opcode'] = opcode
     data['bytecode'] = bytecode
+
+    breakpoint()
 
     # Drop all the data that has missing entries
     data = data.dropna()
