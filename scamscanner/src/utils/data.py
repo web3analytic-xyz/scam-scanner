@@ -65,7 +65,17 @@ def get_contract_code(address, etherscan_api_key, w3):
     """
     abi = get_abi(address, etherscan_api_key)
     if abi is None:
-        return None
+        # Try to get the bytecode even if ABI is not there
+        bytecode = w3.eth.get_code(w3.toChecksumAddress(address))
+        if bytecode.hex() == '0x':
+            return None
+        opcode = bytecode_to_opcode(bytecode)
+        result = {
+            'abi': np.nan,
+            'bytecode': bytecode.hex(),
+            'opcode': opcode,
+        }
+        return result
 
     contract = w3.eth.contract(w3.toChecksumAddress(address), 
                                abi=json.dumps(abi),
@@ -111,7 +121,17 @@ def get_contract_code(address, etherscan_api_key, w3):
             abi = get_abi(address, etherscan_api_key)
 
             if abi is None:
-                return None
+                # If we fail to get the ABI, let's still try to get the bytecode
+                bytecode = w3.eth.get_code(w3.toChecksumAddress(address))
+                if bytecode.hex() == '0x':
+                    return None
+                opcode = bytecode_to_opcode(bytecode)
+                result = {
+                    'abi': np.nan,
+                    'bytecode': bytecode.hex(),
+                    'opcode': opcode,
+                }
+                return result
 
     bytecode = w3.eth.get_code(w3.toChecksumAddress(address))
 

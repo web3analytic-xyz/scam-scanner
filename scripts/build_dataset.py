@@ -58,7 +58,7 @@ def main():
     data['opcode'] = opcode
     data['bytecode'] = bytecode
 
-    breakpoint()
+    data.to_csv(join(out_dir, 'raw.csv'), index=False)
 
     # Drop all the data that has missing entries
     data = data.dropna()
