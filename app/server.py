@@ -14,20 +14,20 @@ class InferenceInput(BaseModel):
     contract: str = Field(
         ...,
         example='0x5e4e65926ba27467555eb562121fac00d24e9dd2',
-        title='Address of a smart contract',
+        title='Address of the smart contract to make a prediction for.',
     )
 
 
 class InferenceOutput(BaseModel):
-    is_scam: bool = Field(
+    pred: int = Field(
         ...,
-        example=False,
-        title='Is the contract a scam?',
+        example=0,
+        title='Takes value 1 if contract is malicious, 0 if not, and -1 if address is not a contract.',
     )
     prob: float = Field(
         ...,
         example=0.5,
-        title='Predicted probability for predicted label',
+        title='Predicted probability for the contract being malicious.',
     )
     success: bool = Field(
         ...,
@@ -39,20 +39,20 @@ class InferenceOutput(BaseModel):
 class ErrorResponse(BaseModel):
     r"""Error response for the API."""
 
-    error: str = Field(
+    error: bool = Field(
         ...,
         example=True,
-        title='Error?',
+        title='Is there an error?',
     )
     message: str = Field(
         ...,
         example='',
-        title='Error message',
+        title='Error message.',
     )
     traceback: Optional[str] = Field(
         None,
         example='',
-        title='Detailed traceback of the error',
+        title='Detailed traceback of the error.',
     )
 
 
@@ -103,5 +103,5 @@ def predict(request: Request, body: InferenceInput):
     pred_prob = torch.sigmoid(logits).item()  # number between 0 and 1
     pred = bool(round(pred_prob))
 
-    return {'is_scam': pred, 'prob': pred_prob, 'success': True}
+    return {'pred': pred, 'prob': pred_prob, 'success': True}
 
