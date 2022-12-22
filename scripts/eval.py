@@ -24,7 +24,7 @@ def main(args):
     rs = seed_everything(config.machine.seed, use_cuda=config.machine.use_cuda)
 
     # Build the data loader
-    _, test_loader = build_loaders(
+    _, test_loader, _ = build_loaders(
         config.optimizer.batch_size,
         config.machine.num_workers,
         rs=rs,
