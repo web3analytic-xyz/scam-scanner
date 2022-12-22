@@ -1,8 +1,8 @@
-import json
 import h5py
 import torch
+import numpy as np
 import pandas as pd
-from collections import defaultdict
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 from os.path import join
 from torch.utils.data import Dataset, DataLoader
@@ -81,20 +81,34 @@ def collator(list_of_dicts, padding_value=0):
 
 
 class BagOfWordsDataset(Dataset):
-    r"""Bag-of-words dataset over op-codes."""
-
-    def __init__(self, split='train'):
+    r"""Bag-of-words dataset over op-codes.
+    Notes:
+    --
+    Actually, we use TF-IDF features
+    """
+    def __init__(self, split='train', featurizer=None):
         super().__init__()
 
-        data = pd.read_csv(join(DATA_DIR, f'{split}.csv'))
+        data = pd.read_csv(join(DATA_DIR, f'processed/{split}.csv'))
         data = data.reset_index(drop=True)
 
-        vocab_file = join(DATA_DIR, f'train-vocab.json')
-        with open(vocab_file, 'r') as fp:
-            vocab = json.load(fp)
+        if featurizer is None:
+            featurizer = TfidfVectorizer()
+            featurizer.fit(data['opcode'])
+
+        feats = featurizer.transform(data['opcode'])
 
         self.data = data
-        self.vocab = vocab
+        self.feats = feats.toarray()
+
+    def __getitem__(self, index):
+        row = self.data.iloc[index]
+        result = {
+            'feat': torch.from_numpy(self.feats[index]).float(),
+            'label': int(row['label'])
+        }
+        return result
+
 
 class EmbeddedDataset(Dataset):
     r"""Dataset of contracts with labels.
@@ -122,7 +136,12 @@ class EmbeddedDataset(Dataset):
             x = hf[name][:]
             x = torch.from_numpy(x).float()
 
-        return x, y
+        result = {
+            'emb': x,
+            'emb_mask': torch.ones(x.size(0)),
+            'label': int(row['label'])
+        }
+        return result
 
     def __len__(self):
         return len(self.data)
