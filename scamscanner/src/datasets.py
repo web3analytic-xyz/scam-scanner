@@ -9,10 +9,10 @@ from torch.utils.data import Dataset, DataLoader
 from .paths import DATA_DIR
 
 
-def build_loaders(batch_size, num_workers=0, rs=None):
+def build_loaders(batch_size, num_workers=0, rs=None, featurizer=None):
     r"""Create data loaders on Bag of Words datasets."""
 
-    train_dset = BagOfWordsDataset(split='train', rs=rs)
+    train_dset = BagOfWordsDataset(split='train', rs=rs, featurizer=featurizer)
     test_dset = BagOfWordsDataset(split='test', featurizer=train_dset.featurizer, rs=rs)
 
     train_loader = DataLoader(
@@ -30,7 +30,7 @@ def build_loaders(batch_size, num_workers=0, rs=None):
         num_workers=num_workers,
     )
 
-    return train_loader, test_loader
+    return train_loader, test_loader, train_dset.featurizer
 
 
 class BagOfWordsDataset(Dataset):

@@ -1,12 +1,13 @@
 import torch
-from typing import Dict, Any, Optional
+from typing import Optional
 
 from fastapi import FastAPI, Request
 from pydantic import BaseModel, Field
+from sklearn.feature_extraction.text import TfidfVectorizer
 
-from transformers import LongformerModel, LongformerTokenizer
 from scamscanner.src.models import ScamScanner
 from scamscanner.src.utils import bytecode_to_opcode, get_w3
+from scamscanner import hub
 
 
 class InferenceInput(BaseModel):
@@ -58,17 +59,11 @@ app: FastAPI = FastAPI(
 
 @app.on_event("startup")
 async def startup_event():
-
-    longformer = LongformerModel.from_pretrained("allenai/longformer-base-4096")
-    tokenizer = LongformerTokenizer.from_pretrained('allenai/longformer-base-4096')
-    scamscanner = ScamScanner.load_from_checkpoint('TODO')
+    model_path = hub.get_model('pretrained-12-22')
+    scamscanner = ScamScanner.load_from_checkpoint(model_path)
     scamscanner.eval()
 
-    app.package = {
-        'longformer': longformer,
-        'tokenizer': tokenizer,
-        'scamscanner': scamscanner,
-    }
+    app.package = {'scamscanner': scamscanner}
 
 
 @app.post(
@@ -77,8 +72,7 @@ async def startup_event():
     responses = {
         422: {'model': ErrorResponse},
         500: {'model': ErrorResponse}
-    }
-)
+    })
 def predict(request: Request, body: InferenceInput):
     w3 = get_w3()
 

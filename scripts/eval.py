@@ -1,3 +1,5 @@
+import joblib
+from os.path import join
 import pytorch_lightning as pl
 
 from scamscanner.src.utils import seed_everything
@@ -15,11 +17,19 @@ def main(args):
     # Fetch the config from the module
     config = module.config
 
+    # Load pretrained featurizer
+    featurizer = joblib.load(join(config.experiment.exp_dir, 'featurizer.joblib'))
+
     # Fix the random seeds for reproducibility
     rs = seed_everything(config.machine.seed, use_cuda=config.machine.use_cuda)
 
     # Build the data loader
-    _, test_loader = build_loaders(config.optimizer.batch_size, config.machine.num_workers, rs=rs)
+    _, test_loader = build_loaders(
+        config.optimizer.batch_size,
+        config.machine.num_workers,
+        rs=rs,
+        featurizer=featurizer,
+    )
 
     # Run through the test set and get the loss
     trainer = pl.Trainer(default_root_dir=config.experiment.exp_dir,
