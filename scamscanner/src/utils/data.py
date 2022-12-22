@@ -122,7 +122,7 @@ def get_contract_code(address, etherscan_api_key, w3):
 
     result = {
         'abi': json.dumps(abi),  # save as string
-        'bytecode': bytecode,
+        'bytecode': bytecode.hex(),
         'opcode': opcode,
     }
     return result
@@ -162,7 +162,7 @@ def get_abi(address, etherscan_api_key):
     return abi_json
 
 
-def bytecode_to_opcode(bytecode):
+def bytecode_to_opcode(bytecode, add_operand=False):
     r"""Convert bytecode data to opcodes.
     Argument:
     --
@@ -173,7 +173,7 @@ def bytecode_to_opcode(bytecode):
     output = []
     for opcode in opcodes:
         output.append(opcode.name)
-        if len(opcode.operand) > 0:
+        if len(opcode.operand) > 0 and add_operand:
             output.append(opcode.operand)
     return ' '.join(output)
 
