@@ -1,12 +1,13 @@
 import torch
-from typing import Dict, Any, Optional
+import joblib
+from typing import Optional
 
 from fastapi import FastAPI, Request
 from pydantic import BaseModel, Field
 
-from transformers import LongformerModel, LongformerTokenizer
 from scamscanner.src.models import ScamScanner
 from scamscanner.src.utils import bytecode_to_opcode, get_w3
+from scamscanner import hub
 
 
 class InferenceInput(BaseModel):
@@ -18,7 +19,7 @@ class InferenceInput(BaseModel):
 
 
 class InferenceOutput(BaseModel):
-    pred: int = Field(
+    is_scam: bool = Field(
         ...,
         example=False,
         title='Is the contract a scam?',
@@ -27,6 +28,11 @@ class InferenceOutput(BaseModel):
         ...,
         example=0.5,
         title='Predicted probability for predicted label',
+    )
+    success: bool = Field(
+        ...,
+        example=True,
+        title='Successfully performed inference',
     )
 
 
@@ -58,17 +64,15 @@ app: FastAPI = FastAPI(
 
 @app.on_event("startup")
 async def startup_event():
-
-    longformer = LongformerModel.from_pretrained("allenai/longformer-base-4096")
-    tokenizer = LongformerTokenizer.from_pretrained('allenai/longformer-base-4096')
-    scamscanner = ScamScanner.load_from_checkpoint('TODO')
+    # Load trained scam-scanner model
+    model_path = hub.get_model('pretrained-12-22')
+    scamscanner = ScamScanner.load_from_checkpoint(model_path)
     scamscanner.eval()
 
-    app.package = {
-        'longformer': longformer,
-        'tokenizer': tokenizer,
-        'scamscanner': scamscanner,
-    }
+    # Load featurizer
+    featurizer = joblib.load(hub.get_model('featurizer-12-22'))
+
+    app.package = {'scamscanner': scamscanner, 'featurizer': featurizer}
 
 
 @app.post(
@@ -77,35 +81,27 @@ async def startup_event():
     responses = {
         422: {'model': ErrorResponse},
         500: {'model': ErrorResponse}
-    }
-)
+    })
 def predict(request: Request, body: InferenceInput):
     w3 = get_w3()
 
     # Get the OPCODE for the contract
-    bytecode = w3.eth.get_code(w3.toChecksumAddress(request.address))
+    bytecode = w3.eth.get_code(w3.toChecksumAddress(body.contract))
+    
     if bytecode.hex() == '0x':
         # Not a contract!
-        return {'pred': -1, 'prob': -1}
+        return {'pred': -1, 'prob': -1, 'success': False}
 
     opcode = bytecode_to_opcode(bytecode=bytecode)
 
     # Encode the OP CODE
-    encoded = app.package['tokenizer'](opcode)
-
-    # Create a batch of 1
-    input_ids = encoded['input_ids'].unsqueeze(0)
-    attention_mask = encoded['attention_mask'].unsqueeze(0)
+    feats = app.package['featurizer'].transform([opcode]).toarray()
+    feats = torch.from_numpy(feats).float()  # shape: 1 x 286
 
     # Do inference
-    outputs = app.package['longformer'](input_ids, attention_mask=attention_mask)
-    sequence_output = outputs.last_hidden_state
-    pad_mask = torch.ones(1, sequence_output.size(1)).long()
-
-    batch = {'emb': sequence_output, 'emb_mask': pad_mask}
-    logit = app.package['scamscanner'].forward(batch)
-    pred_prob = torch.sigmoid(logit).item()  # number between 0 and 1
+    logits = app.package['scamscanner'].forward({'feat': feats})
+    pred_prob = torch.sigmoid(logits).item()  # number between 0 and 1
     pred = bool(round(pred_prob))
 
-    # Not a contract!
-    return {'pred': pred, 'prob': pred_prob}
+    return {'is_scam': pred, 'prob': pred_prob, 'success': True}
+

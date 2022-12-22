@@ -1,3 +1,5 @@
+import joblib
+from os.path import join
 import pytorch_lightning as pl
 
 from scamscanner.src.utils import seed_everything, process_config
@@ -13,11 +15,14 @@ def main(args):
     rs = seed_everything(config.machine.seed, use_cuda=config.machine.use_cuda)
 
     # Build the data loaders
-    train_loader, dev_loader = build_loaders(
+    train_loader, dev_loader, featurizer = build_loaders(
         config.optimizer.batch_size,
         num_workers=config.machine.num_workers,
         rs=rs,
     )
+
+    # Save featurizer to dir
+    joblib.dump(featurizer, join(config.experiment.exp_dir, 'featurizer.joblib'))
 
     # Load the module we wish to use
     module = ScamScanner(config)
