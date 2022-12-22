@@ -4,7 +4,6 @@ from typing import Optional
 
 from fastapi import FastAPI, Request
 from pydantic import BaseModel, Field
-from sklearn.feature_extraction.text import TfidfVectorizer
 
 from scamscanner.src.models import ScamScanner
 from scamscanner.src.utils import bytecode_to_opcode, get_w3
@@ -20,7 +19,7 @@ class InferenceInput(BaseModel):
 
 
 class InferenceOutput(BaseModel):
-    pred: int = Field(
+    is_scam: bool = Field(
         ...,
         example=False,
         title='Is the contract a scam?',
@@ -87,7 +86,7 @@ def predict(request: Request, body: InferenceInput):
     w3 = get_w3()
 
     # Get the OPCODE for the contract
-    bytecode = w3.eth.get_code(w3.toChecksumAddress(request.address))
+    bytecode = w3.eth.get_code(w3.toChecksumAddress(body.contract))
     
     if bytecode.hex() == '0x':
         # Not a contract!
@@ -96,13 +95,13 @@ def predict(request: Request, body: InferenceInput):
     opcode = bytecode_to_opcode(bytecode=bytecode)
 
     # Encode the OP CODE
-    feats = app.package['featurizer'].transform(opcode).toarray()
-    feats = torch.from_numpy(feats).float().unsqueeze(1)  # shape: 1 x 286
+    feats = app.package['featurizer'].transform([opcode]).toarray()
+    feats = torch.from_numpy(feats).float()  # shape: 1 x 286
 
     # Do inference
-    logits = app.package['scamscanner'].forward(feats)
+    logits = app.package['scamscanner'].forward({'feat': feats})
     pred_prob = torch.sigmoid(logits).item()  # number between 0 and 1
     pred = bool(round(pred_prob))
 
-    return {'pred': pred, 'prob': pred_prob, 'success': True}
+    return {'is_scam': pred, 'prob': pred_prob, 'success': True}
 
