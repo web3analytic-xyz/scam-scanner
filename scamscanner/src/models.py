@@ -44,3 +44,8 @@ class ScamScanner_BoW(pl.LightningModule):
         logits = self.forward(batch)
         loss = F.binary_cross_entropy_with_logits(logits.squeeze(1), batch['label'].float())
         return {'loss': loss}
+
+    def test_step(self, batch, _):
+        logits = self.forward(batch)
+        loss = F.binary_cross_entropy_with_logits(logits.squeeze(1), batch['label'].float())
+        return {'loss': loss}

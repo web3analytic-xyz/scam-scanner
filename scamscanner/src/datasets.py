@@ -96,7 +96,6 @@ class BagOfWordsDataset(Dataset):
         return X, y
 
     def __getitem__(self, index):
-        row = self.data.iloc[index]
         result = {
             'feat': torch.from_numpy(self.feats[index]).float(),
             'label': int(self.labels[index])
@@ -104,7 +103,7 @@ class BagOfWordsDataset(Dataset):
         return result
 
     def __len__(self):
-        return len(self.data)
+        return len(self.feats)
 
 
 class EmbeddedDataset(Dataset):
