@@ -11,7 +11,7 @@ from torch.nn.utils.rnn import pad_sequence
 from .paths import DATA_DIR
 
 
-def build_bow_loaders(batch_size, num_workers=0):
+def build_loaders_bow(batch_size, num_workers=0):
     r"""Create data loaders on Bag of Words datasets."""
 
     train_dset = BagOfWordsDataset(split='train')
@@ -35,7 +35,7 @@ def build_bow_loaders(batch_size, num_workers=0):
     return train_loader, test_loader
 
 
-def build_emb_loaders(batch_size, num_workers=0):
+def build_loaders_seq(batch_size, num_workers=0):
     r"""Create data loaders on embedded datasets."""
 
     train_dset = EmbeddedDataset(split='train')
