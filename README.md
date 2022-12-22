@@ -20,7 +20,7 @@ To evaluate a trained ScamScanner model, run the following:
 ```
 python scripts/eval.py <checkpoint-file> --devices 0
 ```
-We include a trained checkpoint in `./scamscanner/trained/checkpoint.pth` that can be used. 20\% of the dataset is randomly set aside as the test set, which the trained model did not get to see. This command will output the loss and accuracy on the test set.
+We include a trained checkpoint in `./scamscanner/hub` that can be used. 20\% of the dataset is randomly set aside as the test set, which the trained model did not get to see. This command will output the loss and accuracy on the test set.
 
 To do live inference, we setup a simple FastAPI that loads the model and any necessary dependencies. To run the server, initialize the server:
 ```
@@ -35,6 +35,21 @@ curl -X 'POST' \
   -d '{
     "contract": "0x5e4e65926ba27467555eb562121fac00d24e9dd2"
   }'
+```
+
+## Performance
+
+The provided checkpoint (trained for 200 epochs) achieves the following:
+```
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+       Test metric             DataLoader 0
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        test/acc            0.9163498098859315
+         test/f1            0.9150579150579151
+        test/loss           0.3454396426677704
+     test/precision         0.9294117647058824
+       test/recall          0.9011406844106464
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
 
 ## About
