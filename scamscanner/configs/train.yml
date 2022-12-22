@@ -1,5 +1,5 @@
 experiment:
-  exp_dir: "/home/mikewu/experiments/bow_12_21"
+  exp_dir: "/home/mikewu/experiments/train_12_22"
 model:
   input_dim: 286
 optimizer:

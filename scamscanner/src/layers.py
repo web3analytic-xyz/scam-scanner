@@ -3,7 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-class Perceptron(nn.Module):
+class ResPerceptron(nn.Module):
+    r"""Residual Perceptron (MLP)."""
 
     def __init__(self, input_dim, dropout_prob=0.5):
         super().__init__()

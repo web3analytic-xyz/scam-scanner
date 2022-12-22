@@ -6,7 +6,7 @@ Trains a classifier on contract OPCODES to classify if a smart contract is a phi
 
 The raw dataset of Ethereum scam contracts are downloaded from various [forta-network](https://github.com/forta-network/labelled-datasets). A dataset of positive (non-scam) Ethereum contracts are downloaded from [tintinweb](https://github.com/tintinweb/smart-contract-sanctuary-ethereum). 
 
-We preprocess these datasets extensively to fetch ABIs, OPCODES, get pretrained embeddings, and more. We store these larger files using `git-lfs`. When cloning the repo, please run `git lfs pull`.
+We preprocess these datasets extensively to fetch ABIs, bytecodes, and OPCODES. We store these larger files using `git-lfs`. When cloning the repo, please run `git lfs pull`.
 
 ## Usage
 
@@ -20,7 +20,7 @@ To evaluate a trained ScamScanner model, run the following:
 ```
 python scripts/eval.py <checkpoint-file> --devices 0
 ```
-We include a trained checkpoint in `./scamscanner/trained/checkpoint.pth` that can be used. 20\% of the dataset is randomly set aside as the test set, which the trained model did not get to see. 
+We include a trained checkpoint in `./scamscanner/trained/checkpoint.pth` that can be used. 20\% of the dataset is randomly set aside as the test set, which the trained model did not get to see. This command will output the loss and accuracy on the test set.
 
 To do live inference, we setup a simple FastAPI that loads the model and any necessary dependencies. To run the server, initialize the server:
 ```
@@ -39,6 +39,6 @@ curl -X 'POST' \
 
 ## About
 
-ScamScanner embeds contract OPCODES using a pretrained [LongFormer](https://arxiv.org/abs/2004.05150) from [Huggingface](https://huggingface.co/docs/transformers/model_doc/longformer). The ScamScanner model consists of stacked [Conformer](https://arxiv.org/abs/2105.03889) encoder layers followed by a [pooling layer](https://github.com/huggingface/transformers/blob/31d452c68b34c2567b62924ee0df40a83cbc52d5/src/transformers/models/longformer/modeling_longformer.py#L1372), and a final linear map to predict 0 (not a scam) or 1 (scam). 
+ScamScanner embeds contract OPCODES using a residual MLP network on top of TF-IDF features computed from a training set of smart contract OPCODES. We opt for this simple model (as opposed to a sequential or attention model) due to the limited size of our dataset (~1k positive examples). Ablation experiemnts found TF-IDF to outperform bag-of-words features due to normalization challenges.
 
-Limited model and hyperparameter search were conducted. Further experiments should leverage better performance still. We emphasize that this code is a proof-of-concept, and should not be used at scale. Increasing the size of the labeled dataset would likely yield a more powerful classifier.
+Limited model and hyperparameter search were conducted. Further experiments should leverage better performance still. We emphasize that this code is a proof-of-concept, and should not be used at scale. Increasing the size of the labeled dataset and utilizing a transformer-based model is an interesting direction for future work.
