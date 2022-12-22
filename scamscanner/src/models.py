@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 
 import pytorch_lightning as pl
-from .layers import Perceptron
+from .layers import ResPerceptron
 from .utils import collect_metrics
 
 
@@ -20,7 +20,7 @@ class ScamScanner(pl.LightningModule):
         super().__init__()
         self.save_hyperparameters()
         
-        self.model = Perceptron(config.model.input_dim)
+        self.model = ResPerceptron(config.model.input_dim)
         self.config = config
 
     def forward(self, batch):

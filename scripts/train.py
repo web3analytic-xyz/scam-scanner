@@ -1,8 +1,8 @@
 import pytorch_lightning as pl
 
 from scamscanner.src.utils import seed_everything, process_config
-from scamscanner.src.datasets import build_loaders_bow
-from scamscanner.src.models import ScamScanner_BoW
+from scamscanner.src.datasets import build_loaders
+from scamscanner.src.models import ScamScanner
 
 
 def main(args):
@@ -13,14 +13,14 @@ def main(args):
     rs = seed_everything(config.machine.seed, use_cuda=config.machine.use_cuda)
 
     # Build the data loaders
-    train_loader, dev_loader = build_loaders_bow(
+    train_loader, dev_loader = build_loaders(
         config.optimizer.batch_size,
         num_workers=config.machine.num_workers,
         rs=rs,
     )
 
     # Load the module we wish to use
-    module = ScamScanner_BoW(config)
+    module = ScamScanner(config)
 
     # Save the checkpoint weights by minimum dev loss
     checkpoint_callback = pl.callbacks.ModelCheckpoint(config.checkpoint_dir, every_n_epochs=5)
