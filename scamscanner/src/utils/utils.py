@@ -107,7 +107,6 @@ def collect_binary_classification_metrics(outputs, split):
     metrics[f'{split}/precision'] = precision_score(labels, preds)
     metrics[f'{split}/recall'] = recall_score(labels, preds)
     metrics[f'{split}/f1'] = f1_score(labels, preds)
-    metrics[f'{split}/roc-auc'] = roc_auc_score(labels, probs)
 
     # Handle any remaining keys
     keys = outputs[0].keys()
