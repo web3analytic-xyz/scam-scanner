@@ -22,8 +22,7 @@ def embed_dataset(dataset, model, tokenizer, device, out_file, batch_size=8):
 
         for i in tqdm(range(len(dataset)), desc='embedding...'):
             row = dataset.iloc[i]
-            bytecode = eval(row['bytecode']).hex()
-            opcode = bytecode_to_opcode(bytecode)]
+            opcode = row['opcode']
             encoded = tokenizer(opcode)
 
             batch_names.append(row['address'])
