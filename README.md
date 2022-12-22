@@ -24,7 +24,7 @@ We include a trained checkpoint in `./scamscanner/trained/checkpoint.pth` that c
 
 To do live inference, we setup a simple FastAPI that loads the model and any necessary dependencies. To run the server, initialize the server:
 ```
-uvicorn app/server:app --reload
+uvicorn app.server:app --reload
 ```
 You can then send API requests to your server e.g.
 ```
