@@ -1,11 +1,9 @@
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 
 import pytorch_lightning as pl
 from .layers import Perceptron
-
-from transformers import LongformerModel, LongformerTokenizer
+from .utils import collect_metrics
 
 
 class ScamScanner_BoW(pl.LightningModule):
@@ -49,3 +47,15 @@ class ScamScanner_BoW(pl.LightningModule):
         logits = self.forward(batch)
         loss = F.binary_cross_entropy_with_logits(logits.squeeze(1), batch['label'].float())
         return {'loss': loss}
+
+    def training_epoch_end(self, outputs):
+        metrics = collect_metrics(outputs, self.current_epoch, 'train')
+        self.log_dict(metrics)
+
+    def validation_epoch_end(self, outputs):
+        metrics = collect_metrics(outputs, self.current_epoch, 'dev')
+        self.log_dict(metrics)
+
+    def test_epoch_end(self, outputs):
+        metrics = collect_metrics(outputs, self.current_epoch, 'test')
+        self.log_dict(metrics)
