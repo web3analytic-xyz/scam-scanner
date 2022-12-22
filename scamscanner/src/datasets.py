@@ -70,21 +70,21 @@ class BagOfWordsDataset(Dataset):
             featurizer = TfidfVectorizer()
             featurizer.fit(data['opcode'])
 
-        feats = featurizer.transform(data['opcode'])
+        feats = featurizer.transform(data['opcode']).toarray()
         labels = data['label']
-
+        
         if rs is None:
             rs = np.random.RandomState(42)
 
         feats, labels = self.balance(feats, labels, rs)
 
-        self.feats = feats.toarray()
+        self.feats = feats
         self.labels = labels
         self.featurizer = featurizer
 
     def balance(self, X, y, rs):
-        pos_indices = np.where(y == 1)
-        neg_indices = np.where(y == 0)
+        pos_indices = np.where(y == 1)[0]
+        neg_indices = np.where(y == 0)[0]
 
         pos_feats = X[pos_indices]
         neg_indices = rs.choice(neg_indices, size=len(pos_indices), replace=False)
