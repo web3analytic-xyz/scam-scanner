@@ -2,8 +2,9 @@ import torch
 import torch.nn.functional as F
 
 import pytorch_lightning as pl
+
 from .layers import ResPerceptron
-from .utils import collect_metrics
+from .utils import collect_metrics, collect_binary_classification_metrics
 
 
 class ScamScanner(pl.LightningModule):
@@ -45,26 +46,35 @@ class ScamScanner(pl.LightningModule):
         logits = self.forward(batch).squeeze(1)
         labels = batch['label'].float()
         loss = F.binary_cross_entropy_with_logits(logits, labels)
-        pred = torch.round(torch.sigmoid(logits))
-        acc = torch.sum(pred == labels).item() / float(len(labels))
-        return {'loss': loss, 'acc': acc}
+        probs = torch.sigmoid(logits)
+        # Return the actual predictions so we can compute fine-grain metrics
+        return {
+            'loss': loss,
+            'labels': labels.cpu().numpy(),
+            'probs': probs.cpu().numpy(),
+        }
 
     def test_step(self, batch, _):
         logits = self.forward(batch).squeeze(1)
         labels = batch['label'].float()
         loss = F.binary_cross_entropy_with_logits(logits, labels)
-        pred = torch.round(torch.sigmoid(logits))
-        acc = torch.sum(pred == labels).item() / float(len(labels))
-        return {'loss': loss, 'acc': acc}
+        probs = torch.sigmoid(logits)
+        # Return the actual predictions so we can compute fine-grain metrics
+        return {
+            'loss': loss,
+            'labels': labels.cpu().numpy(),
+            'probs': probs.cpu().numpy(),
+        }
 
     def training_epoch_end(self, outputs):
         metrics = collect_metrics(outputs, 'train')
         self.log_dict(metrics)
 
     def validation_epoch_end(self, outputs):
-        metrics = collect_metrics(outputs, 'dev')
+        metrics = collect_binary_classification_metrics(outputs, 'dev')
         self.log_dict(metrics)
 
     def test_epoch_end(self, outputs):
-        metrics = collect_metrics(outputs, 'test')
+        metrics = collect_binary_classification_metrics(outputs, 'test')
         self.log_dict(metrics)
+

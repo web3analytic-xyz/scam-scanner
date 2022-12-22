@@ -9,6 +9,14 @@ import numpy as np
 import shutil
 from dotmap import DotMap
 
+from sklearn.metrics import (
+    precision_score,
+    recall_score,
+    accuracy_score,
+    f1_score,
+    roc_auc_score,
+)
+
 
 def process_config(config_path):
     r"""Loads a config file and setups the experiment
@@ -71,5 +79,47 @@ def collect_metrics(outputs, split):
     for output in outputs:
         for key in keys:
             metrics[f'{split}/{key}'] += output[key] / size
+
+    return metrics
+
+
+def collect_binary_classification_metrics(outputs, split):
+    r"""At the end of an epoch, use this function to aggregate metrics
+    and compute binary classification metrics.
+    Arguments:
+    --
+    outputs: list[dict[string, any]]
+    split: string e.g. train
+        train | dev | test
+    """
+    labels, probs = [], []
+
+    for output in outputs:
+        labels.append(output['labels'])
+        probs.append(output['probs'])
+
+    labels = np.concatenate(labels)
+    probs = np.concatenate(probs)
+    preds = np.round(probs)
+
+    metrics = {}
+    metrics[f'{split}/acc'] = accuracy_score(labels, preds)
+    metrics[f'{split}/precision'] = precision_score(labels, preds)
+    metrics[f'{split}/recall'] = recall_score(labels, preds)
+    metrics[f'{split}/f1'] = f1_score(labels, preds)
+    metrics[f'{split}/roc-auc'] = roc_auc_score(labels, probs)
+
+    # Handle any remaining keys
+    keys = outputs[0].keys()
+    size = len(outputs)
+
+    for key in keys:
+        if key not in ['labels', 'probs']:
+            metrics[f'{split}/{key}'] = 0
+
+    for output in outputs:
+        for key in keys:
+            if key not in ['labels', 'probs']:
+                metrics[f'{split}/{key}'] += output[key] / size
 
     return metrics
