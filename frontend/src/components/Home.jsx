@@ -14,7 +14,7 @@ export default function HomePage() {
 
     // What to do in an actual query
     const onAddressSubmit = (addr) => {
-        axios.get('http://127.0.0.1:8000/api/scan/' + addr).then(response => {
+        axios.get(process.env.SCAMSCANNER_BACKEND_URL + '/api/scan/' + addr).then(response => {
             if (response.status === 200) {
                 if (response.data.success) {
                     setPrediction(response.data.pred);
