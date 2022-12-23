@@ -1,8 +1,8 @@
 import torch
 import joblib
-from typing import Optional
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from scamscanner.src.models import ScamScanner
@@ -10,19 +10,11 @@ from scamscanner.src.utils import bytecode_to_opcode, get_w3
 from scamscanner import hub
 
 
-class InferenceInput(BaseModel):
-    contract: str = Field(
-        ...,
-        example='0x5e4e65926ba27467555eb562121fac00d24e9dd2',
-        title='Address of the smart contract to make a prediction for.',
-    )
-
-
 class InferenceOutput(BaseModel):
     pred: int = Field(
         ...,
         example=0,
-        title='Takes value 1 if contract is malicious, 0 if not, and -1 if address is not a contract.',
+        title='Takes value 1 if contract is malicious, 0 if not.',
     )
     prob: float = Field(
         ...,
@@ -36,31 +28,24 @@ class InferenceOutput(BaseModel):
     )
 
 
-class ErrorResponse(BaseModel):
-    r"""Error response for the API."""
-
-    error: bool = Field(
-        ...,
-        example=True,
-        title='Is there an error?',
-    )
-    message: str = Field(
-        ...,
-        example='',
-        title='Error message.',
-    )
-    traceback: Optional[str] = Field(
-        None,
-        example='',
-        title='Detailed traceback of the error.',
-    )
-
-
 app: FastAPI = FastAPI(
     title='ScamScanner',
     description='Predict whether a smart contract is a scam or not',
 )
 
+# For interacting with the frontend
+origins = [
+    "http://localhost:3000",
+    "localhost:3000"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
 
 @app.on_event("startup")
 async def startup_event():
@@ -75,22 +60,21 @@ async def startup_event():
     app.package = {'scamscanner': scamscanner, 'featurizer': featurizer}
 
 
-@app.post(
-    '/api/predict',
-    response_model = InferenceOutput,
-    responses = {
-        422: {'model': ErrorResponse},
-        500: {'model': ErrorResponse}
-    })
-def predict(request: Request, body: InferenceInput):
+@app.get('/api/scan/{contract}', response_model = InferenceOutput)
+def scan(contract: str, request: Request):
+    r"""Call trained ScamScanner model to predict if a contract is malicious."""
+
+    if not verify_contract(contract):
+        raise HTTPException(status_code=400, detail='Invalid contract address')
+
     w3 = get_w3()
 
     # Get the OPCODE for the contract
-    bytecode = w3.eth.get_code(w3.toChecksumAddress(body.contract))
-    
+    bytecode = w3.eth.get_code(w3.toChecksumAddress(contract))
+
     if bytecode.hex() == '0x':
         # Not a contract!
-        return {'pred': -1, 'prob': -1, 'success': False}
+        raise HTTPException(status_code=400, detail='Address is not a contract')
 
     opcode = bytecode_to_opcode(bytecode=bytecode)
 
@@ -101,7 +85,24 @@ def predict(request: Request, body: InferenceInput):
     # Do inference
     logits = app.package['scamscanner'].forward({'feat': feats})
     pred_prob = torch.sigmoid(logits).item()  # number between 0 and 1
-    pred = bool(round(pred_prob))
+    pred = round(pred_prob)
 
     return {'pred': pred, 'prob': pred_prob, 'success': True}
 
+
+def verify_contract(contract):
+    r"""Simple validation on contract address input.
+    Returns:
+    --
+    is_valid (bool)
+    """
+    if not isinstance(contract, str):
+        return False
+
+    if len(contract) != 42:
+        return False
+
+    if contract[:2] != '0x':
+        return False
+
+    return True

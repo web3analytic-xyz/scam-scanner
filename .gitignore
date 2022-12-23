@@ -132,3 +132,4 @@ dmypy.json
 env/
 **cache.pkl
 
+**/node_modules
