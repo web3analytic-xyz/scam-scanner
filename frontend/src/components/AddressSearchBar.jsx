@@ -14,7 +14,7 @@ function isValid(addr) {
     return ans;
 }
 
-export default function AddressSearchBar({onSubmit, inputAddress, setInputAddress}) {
+export default function AddressSearchBar({onSubmit, inputAddress, setInputAddress, setInitialized}) {
     const inputEl = useRef(null);
     const [invalid, setInvalid] = useState(false);
 
@@ -37,6 +37,7 @@ export default function AddressSearchBar({onSubmit, inputAddress, setInputAddres
         const addr = e.target.value;
         e.preventDefault();
         setInputAddress(addr);
+        setInitialized(false);
     }
 
     return (

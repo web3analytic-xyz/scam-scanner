@@ -39,6 +39,7 @@ export default function HomePage() {
                             onSubmit={onAddressSubmit}
                             inputAddress={inputAddress}
                             setInputAddress={setInputAddress} 
+                            setInitialized={setInitialized}
                         />
                     </div>
                     <div className="justify-center row">

@@ -25,7 +25,8 @@ export default function ResultsPage({
         if (prediction) {
             predictionText = <span style={{color: "rgb(243, 66, 66)"}}>YES</span>;
         } else {
-            predictionText = <span style={{color: "rgb(0, 255, 0)"}}>NO</span>;
+            probability = 100 - probability;
+            predictionText = <span style={{color: "rgb(3,125,80)"}}>NO</span>;
         }
         content = (
             <div className="results-content">
@@ -46,7 +47,7 @@ export default function ResultsPage({
                         </div>
                         <div className="col-sm">
                             <div className="size-container">
-                                <h3>Probability</h3>
+                                <h3>Confidence</h3>
                                 <div className="stat-container__value-container">
                                     <div className="stat-container__value-wrap">
                                         <div className="stat-container__value size">{probability}</div>
