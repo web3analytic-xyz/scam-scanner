@@ -14,7 +14,7 @@ export default function HomePage() {
 
     // What to do in an actual query
     const onAddressSubmit = (addr) => {
-        axios.get(process.env.REACT_APP_API_URL + '/api/scan/' + addr).then(response => {
+        axios.get('https://34.220.255.194:80/api/scan/' + addr).then(response => {
             if (response.status === 200) {
                 if (response.data.success) {
                     setPrediction(response.data.pred);
