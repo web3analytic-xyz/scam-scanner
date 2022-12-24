@@ -36,7 +36,9 @@ app: FastAPI = FastAPI(
 # For interacting with the frontend
 origins = [
     "http://localhost:3000",
-    "localhost:3000"
+    "localhost:3000",
+    "https://web3analytic-xyz.github.io",
+    "https://web3analytic-xyz.github.io/scam-scanner"
 ]
 
 app.add_middleware(
