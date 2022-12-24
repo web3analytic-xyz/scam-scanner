@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { InputGroup, FormControl, Form } from 'react-bootstrap';
-import searchEventTracker from './searchEventTracker';
 
 
 /**
@@ -19,7 +18,6 @@ function isValid(addr) {
 export default function AddressSearchBar({onSubmit, inputAddress, setInputAddress, setInitialized}) {
     const inputEl = useRef(null);
     const [invalid, setInvalid] = useState(false);
-    const gaEventTracker = searchEventTracker('search');
 
     useEffect(() => {
         if (inputAddress.length > 0) {
@@ -34,7 +32,6 @@ export default function AddressSearchBar({onSubmit, inputAddress, setInputAddres
         }
         setInvalid(false);
         onSubmit(addr);
-        gaEventTracker('submit', addr);
     }
 
     const onChangeInputAddress = e => {
