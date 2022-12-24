@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/web3analytic-xyz/scam-scanner/static/css/main.e6c13ad2.css",
+    "main.js": "/web3analytic-xyz/scam-scanner/static/js/main.2c795abf.js",
+    "static/js/787.cda612ba.chunk.js": "/web3analytic-xyz/scam-scanner/static/js/787.cda612ba.chunk.js",
+    "index.html": "/web3analytic-xyz/scam-scanner/index.html",
+    "main.e6c13ad2.css.map": "/web3analytic-xyz/scam-scanner/static/css/main.e6c13ad2.css.map",
+    "main.2c795abf.js.map": "/web3analytic-xyz/scam-scanner/static/js/main.2c795abf.js.map",
+    "787.cda612ba.chunk.js.map": "/web3analytic-xyz/scam-scanner/static/js/787.cda612ba.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.e6c13ad2.css",
+    "static/js/main.2c795abf.js"
+  ]
+}
