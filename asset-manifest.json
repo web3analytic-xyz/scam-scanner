@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/web3analytic-xyz/scam-scanner/static/css/main.e6c13ad2.css",
-    "main.js": "/web3analytic-xyz/scam-scanner/static/js/main.2fa37c01.js",
-    "static/js/787.cda612ba.chunk.js": "/web3analytic-xyz/scam-scanner/static/js/787.cda612ba.chunk.js",
-    "index.html": "/web3analytic-xyz/scam-scanner/index.html",
-    "main.e6c13ad2.css.map": "/web3analytic-xyz/scam-scanner/static/css/main.e6c13ad2.css.map",
-    "main.2fa37c01.js.map": "/web3analytic-xyz/scam-scanner/static/js/main.2fa37c01.js.map",
-    "787.cda612ba.chunk.js.map": "/web3analytic-xyz/scam-scanner/static/js/787.cda612ba.chunk.js.map"
+    "main.css": "/scam-scanner/static/css/main.e6c13ad2.css",
+    "main.js": "/scam-scanner/static/js/main.d2e836bf.js",
+    "static/js/787.cda612ba.chunk.js": "/scam-scanner/static/js/787.cda612ba.chunk.js",
+    "index.html": "/scam-scanner/index.html",
+    "main.e6c13ad2.css.map": "/scam-scanner/static/css/main.e6c13ad2.css.map",
+    "main.d2e836bf.js.map": "/scam-scanner/static/js/main.d2e836bf.js.map",
+    "787.cda612ba.chunk.js.map": "/scam-scanner/static/js/787.cda612ba.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.e6c13ad2.css",
-    "static/js/main.2fa37c01.js"
+    "static/js/main.d2e836bf.js"
   ]
 }
