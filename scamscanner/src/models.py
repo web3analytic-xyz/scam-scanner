@@ -3,7 +3,7 @@ import torch.nn.functional as F
 
 import pytorch_lightning as pl
 
-from .layers import ResPerceptron
+from .layers import ResPerceptron, LogisticRegression
 from .utils import collect_metrics, collect_binary_classification_metrics
 
 
@@ -20,8 +20,13 @@ class ScamScanner(pl.LightningModule):
     def __init__(self, config):
         super().__init__()
         self.save_hyperparameters()
-        
-        self.model = ResPerceptron(config.model.input_dim)
+
+        if config.model.linear:
+            # NOTE: this check should work with older versions too since 
+            # `dotmap.DotMap` is falsy
+            self.model = LogisticRegression(config.model.input_dim)
+        else:
+            self.model = ResPerceptron(config.model.input_dim)
         self.config = config
 
     def forward(self, batch):

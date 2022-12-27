@@ -3,6 +3,18 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
+class LogisticRegression(nn.Module):
+    r"""Linear model."""
+
+    def __init__(self, input_dim):
+        super().__init__()
+
+        self.fc1 = Linear_Norm(input_dim, 1)
+
+    def forward(self, x):
+        return self.fc1(x)
+
+
 class ResPerceptron(nn.Module):
     r"""Residual Perceptron (MLP)."""
 
