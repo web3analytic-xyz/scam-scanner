@@ -29,12 +29,12 @@ def process_config(config_path):
     config = DotMap(config_dict)
 
     # Create a checkpoint directory inside the experiment directory
-    config.checkpoint_dir = join(config.experiment.exp_dir, "checkpoints/")
-    os.makedirs(config.checkpoint_dir, exist_ok=True)
+    config.experiment.checkpoint_dir = join(config.experiment.exp_dir, "checkpoints/")
+    os.makedirs(config.experiment.checkpoint_dir, exist_ok=True)
 
     # Create a directory for saving predictions
-    config.out_dir = join(config.experiment.exp_dir, "out/")
-    os.makedirs(config.out_dir, exist_ok=True)
+    config.experiment.out_dir = join(config.experiment.exp_dir, "out/")
+    os.makedirs(config.experiment.out_dir, exist_ok=True)
 
     # Copy the config file to the experiment directory for safe keeping
     shutil.copyfile(config_path, join(config.experiment.exp_dir, basename(config_path)))
