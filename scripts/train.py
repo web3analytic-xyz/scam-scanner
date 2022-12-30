@@ -28,7 +28,7 @@ def main(args):
     module = ScamScanner(config)
 
     # Save the checkpoint weights by minimum dev loss
-    checkpoint_callback = pl.callbacks.ModelCheckpoint(config.checkpoint_dir, every_n_epochs=5)
+    checkpoint_callback = pl.callbacks.ModelCheckpoint(config.experiment.checkpoint_dir, every_n_epochs=5)
 
     # Create a trainer instance
     trainer = pl.Trainer(
