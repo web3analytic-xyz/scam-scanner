@@ -34,11 +34,10 @@ def main(args):
 
     model = module.model
     # shape after squeeze: `|OP_CODES|`
-    params = model.fc1.linear.weight.squeeze(0).cpu().numpy()
+    params = model.fc1.linear.weight.squeeze(0).detach().cpu().numpy()
 
     # Negative weights are as important as positive ones
     importance = np.abs(params)
-
     result = []
 
     order = np.argsort(importance)[::-1]
