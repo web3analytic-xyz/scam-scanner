@@ -92,4 +92,13 @@ In particular, we observe lower accuracy, higher test loss. Pretrained weights c
 ```
 python scripts/train.py ./scamscanner/configs/linear.yml --devices 0
 ```
-
+Here are the top 5 OPCODES most important to the linear model. You can find the full list in `./data/analytics/interpret.csv`. 
+```
+rank  importance        opcode
+0     0.846559    calldatasize
+1     0.836547             not
+2     0.794783              lt
+3     0.766671            log3
+4     0.764917        codecopy
+...
+```
