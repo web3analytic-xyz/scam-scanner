@@ -73,3 +73,23 @@ ScamScanner embeds contract OPCODES using a residual MLP network on top of TF-ID
 
 Limited model and hyperparameter search were conducted. Further experiments should leverage better performance still. We emphasize that this code is a proof-of-concept, and should not be used at scale. Increasing the size of the labeled dataset and utilizing a transformer-based model is an interesting direction for future work.
 
+## Ablations
+
+As a baseline and for interpretability purposes, we fit a linear model (logistic regression), which achieves the following on a held-out test set:
+
+```
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+       Test metric             DataLoader 0
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+        test/acc            0.8212927756653993
+         test/f1            0.8049792531120332
+        test/loss           0.43223240971565247
+     test/precision         0.8858447488584474
+       test/recall          0.7376425855513308
+───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+```
+In particular, we observe lower accuracy, higher test loss. Pretrained weights can be found in the hub. You can also train this model yourself by running:
+```
+python scripts/train.py ./scamscanner/configs/linear.yml --devices 0
+```
+

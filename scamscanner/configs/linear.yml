@@ -1,8 +1,8 @@
 experiment:
-  exp_dir: "/home/mikewu/experiments/train_12_22"
+  exp_dir: "/home/mikewu/experiments/logreg_12_22"
 model:
   input_dim: 286
-  linear: false
+  linear: true
 optimizer:
   lr: 1.0e-4
   weight_decay: 0
